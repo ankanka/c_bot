@@ -1,6 +1,8 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import ReplyKeyboardMarkup, KeyboardButton
 import settings
+import requests
+
 import logging
 
 logging.basicConfig(filename='bot.log', level=logging.INFO)
@@ -18,9 +20,11 @@ def main_keyboard():
     return ReplyKeyboardMarkup([
         ['Курсы валют', 'Курсы криптовалют'], ['Курсы акций', 'Справка']])   
 
+cc_list = settings.available_crypto_currencies
+
 def crypto_keyboard():
     return ReplyKeyboardMarkup([
-        ['BTC', 'LTC'], ['BCH', 'XRP'], ['Выбрать криптовалюту по умолчанию']
+        cc_list[0], cc_list[1], ['Выбрать криптовалюту по умолчанию']
     ])
 
 def get_crypto(update, context):
@@ -31,18 +35,21 @@ def get_crypto(update, context):
 
 def default_crypto_keyboard():
     return ReplyKeyboardMarkup([
-        ['BTC', 'LTC'], ['BCH', 'XRP']
+        cc_list[0], cc_list[1]
     ])    
 
 def default_crypto_currency(update, context):
+    return user_crypto_currency
     update.message.reply_text(
         f'Доступные валюты:',
         reply_markup = default_crypto_keyboard()
     )
 
+c_list = settings.available_currencies
+
 def currency_keyboard():
     return ReplyKeyboardMarkup([
-        ['USD', 'EUR'], ['GBP', 'UAH'], ['Выбрать валюту по умолчанию']
+        c_list[0], c_list[1], ['Выбрать валюту по умолчанию']
     ])
 
 def get_currency(update, context):
@@ -53,7 +60,7 @@ def get_currency(update, context):
 
 def default_currency_keyboard():
     return ReplyKeyboardMarkup([
-        ['USD', 'EUR'], ['GBP', 'UAH']
+        c_list[0], c_list[1]
     ])    
 
 def default_currency(update, context):
@@ -62,8 +69,16 @@ def default_currency(update, context):
         reply_markup = default_currency_keyboard()
     )
 
+def get_cur_exchange_rate(update, context):
+    user_currency = update.message.text
+    c_rate = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')
+    c_rate_json = c_rate.json()
+    for crs in c_list:
+        if user_currency in crs:
+            update.message.reply_text(f"{c_rate_json['Valute'][user_currency]['Value']} руб за 1 {user_currency}")
+
 def get_exchange_rate(update, context):
-    pass 
+    pass
 
 def main():
     curbot = Updater(settings.API_KEY, use_context=True)   
@@ -76,10 +91,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.regex('^(XRP)$'), get_exchange_rate))
     dp.add_handler(MessageHandler(Filters.regex('^(Выбрать криптовалюту по умолчанию)$'), default_crypto_currency))
     dp.add_handler(MessageHandler(Filters.regex('^(Курсы валют)$'), get_currency))
-    dp.add_handler(MessageHandler(Filters.regex('^(USD)$'), get_exchange_rate))
-    dp.add_handler(MessageHandler(Filters.regex('^(EUR)$'), get_exchange_rate))
-    dp.add_handler(MessageHandler(Filters.regex('^(GBP)$'), get_exchange_rate))
-    dp.add_handler(MessageHandler(Filters.regex('^(UAH)$'), get_exchange_rate))
+    dp.add_handler(MessageHandler(Filters.text, get_cur_exchange_rate))
     dp.add_handler(MessageHandler(Filters.regex('^(Выбрать валюту по умолчанию)$'), default_currency))
 
     logging.info('Бот стартовал')
