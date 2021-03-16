@@ -71,13 +71,38 @@ def default_currency(update, context):
 
 def get_cur_exchange_rate(update, context):
     user_currency = update.message.text
-    c_rate = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')
-    c_rate_json = c_rate.json()
+    r = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')
+    c_rate_json = r.json()
     for crs in c_list:
         if user_currency in crs:
-            update.message.reply_text(f"{c_rate_json['Valute'][user_currency]['Value']} руб за 1 {user_currency}")
+            user_cur_rate = c_rate_json['Valute'][user_currency]['Value']
+            update.message.reply_text(f"{round(user_cur_rate, 2)} руб за 1 {user_currency}")
 
-def get_exchange_rate(update, context):
+def get_stock_keyboard(update, context):
+    update.message.reply_text(
+        f'Выбери компанию',
+        reply_markup = stock_keyboard()
+    )  
+
+s_list = settings.available_stock
+def stock_keyboard():
+    return ReplyKeyboardMarkup([
+        s_list[0], s_list[1], ['Выбрать валюту по умолчанию']
+    ])
+
+def get_stock_price(update, context):
+    user_stock = update.message.text
+    url = 'https://cloud.iexapis.com/stable/tops'
+    params = {
+        'token': 'pk_b5276bc5dc0f487885414e48c8649dc9',
+        'symbols': user_stock
+    }
+    r = requests.get(url=url, params=params)
+    r_json = r.json()
+    stock_price = r_json[0]['lastSalePrice']
+    update.message.reply_text(f'Текущая цена {user_stock}: {stock_price}$')
+
+def get_crypto_exchange_rate(update, context):
     pass
 
 def main():
@@ -85,14 +110,19 @@ def main():
     dp = curbot.dispatcher
     dp.add_handler(CommandHandler('start', greet_user))
     dp.add_handler(MessageHandler(Filters.regex('^(Курсы криптовалют)$'), get_crypto))
-    dp.add_handler(MessageHandler(Filters.regex('^(BTC)$'), get_exchange_rate))
-    dp.add_handler(MessageHandler(Filters.regex('^(LTC)$'), get_exchange_rate))
-    dp.add_handler(MessageHandler(Filters.regex('^(BCH)$'), get_exchange_rate))
-    dp.add_handler(MessageHandler(Filters.regex('^(XRP)$'), get_exchange_rate))
+    dp.add_handler(MessageHandler(Filters.regex('^(BTC)$'), get_crypto_exchange_rate))
+    dp.add_handler(MessageHandler(Filters.regex('^(LTC)$'), get_crypto_exchange_rate))
+    dp.add_handler(MessageHandler(Filters.regex('^(BCH)$'), get_crypto_exchange_rate))
+    dp.add_handler(MessageHandler(Filters.regex('^(XRP)$'), get_crypto_exchange_rate))
     dp.add_handler(MessageHandler(Filters.regex('^(Выбрать криптовалюту по умолчанию)$'), default_crypto_currency))
     dp.add_handler(MessageHandler(Filters.regex('^(Курсы валют)$'), get_currency))
-    dp.add_handler(MessageHandler(Filters.text, get_cur_exchange_rate))
     dp.add_handler(MessageHandler(Filters.regex('^(Выбрать валюту по умолчанию)$'), default_currency))
+    dp.add_handler(MessageHandler(Filters.regex('^(Курсы акций)$'), get_stock_keyboard))
+    dp.add_handler(MessageHandler(Filters.regex('^(aapl)$'), get_stock_price))
+    dp.add_handler(MessageHandler(Filters.regex('^(yndx)$'), get_stock_price))
+    dp.add_handler(MessageHandler(Filters.regex('^(twtr)$'), get_stock_price))
+    dp.add_handler(MessageHandler(Filters.regex('^(goog)$'), get_stock_price))
+    dp.add_handler(MessageHandler(Filters.text, get_cur_exchange_rate))
 
     logging.info('Бот стартовал')
     curbot.start_polling()
