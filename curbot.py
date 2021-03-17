@@ -94,7 +94,7 @@ def get_stock_price(update, context):
     user_stock = update.message.text
     url = 'https://cloud.iexapis.com/stable/tops'
     params = {
-        'token': 'pk_b5276bc5dc0f487885414e48c8649dc9',
+        'token': settings.API_KEY_IEX,
         'symbols': user_stock
     }
     r = requests.get(url=url, params=params)
