@@ -1,7 +1,9 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram import ReplyKeyboardMarkup, KeyboardButton
+from telegram import ReplyKeyboardMarkup, KeyboardButton #, ConversationHandler
 import settings
 import requests
+import currency
+import c_utils
 
 import logging
 
@@ -9,40 +11,30 @@ logging.basicConfig(filename='bot.log', level=logging.INFO)
 
 #PROXY = {'proxy_url': settings.PROXY_URL, 'urllib3_proxy_kwargs': {'username': settings.PROXY_USERNAME, 'password': settings.PROXY_PASSWORD}}
 
+def keyboard(list1, list2, button = ['Справка']):
+    return ReplyKeyboardMarkup([list1, list2, button])
+
 def greet_user(update, context):
     print('Вызван /start')
     update.message.reply_text(
         f'Привет, пользователь!',
-        reply_markup = main_keyboard()
+        reply_markup = keyboard(settings.main[0], settings.main[1])  
     )
 
-def main_keyboard():
-    return ReplyKeyboardMarkup([
-        ['Курсы валют', 'Курсы криптовалют'], ['Курсы акций', 'Справка']])   
-
 cc_list = settings.available_crypto_currencies
-
-def crypto_keyboard():
-    return ReplyKeyboardMarkup([
-        cc_list[0], cc_list[1], ['Выбрать криптовалюту по умолчанию']
-    ])
 
 def get_crypto(update, context):
     update.message.reply_text(
         f'Выбери валюту',
-        reply_markup = crypto_keyboard()
+        reply_markup = keyboard(cc_list[0], cc_list[1], ['Выбрать криптовалюту по умолчанию'])
     )
-
-def default_crypto_keyboard():
-    return ReplyKeyboardMarkup([
-        cc_list[0], cc_list[1]
-    ])    
+   
 
 def default_crypto_currency(update, context):
     return user_crypto_currency
     update.message.reply_text(
         f'Доступные валюты:',
-        reply_markup = default_crypto_keyboard()
+        reply_markup = keyboard(c_list[0], c_list[1], ['Выбрать валюту по умолчанию'])
     )
 
 c_list = settings.available_currencies
@@ -57,16 +49,11 @@ def get_currency(update, context):
         f'Выбери валюту',
         reply_markup = currency_keyboard()
     )
-
-def default_currency_keyboard():
-    return ReplyKeyboardMarkup([
-        c_list[0], c_list[1]
-    ])    
-
+ 
 def default_currency(update, context):
     update.message.reply_text(
         f'Доступные валюты:',
-        reply_markup = default_currency_keyboard()
+        reply_markup = keyboard(c_list[0], c_list[1])
     )
 
 def get_cur_exchange_rate(update, context):
@@ -78,17 +65,14 @@ def get_cur_exchange_rate(update, context):
             user_cur_rate = c_rate_json['Valute'][user_currency]['Value']
             update.message.reply_text(f"{round(user_cur_rate, 2)} руб за 1 {user_currency}")
 
-def get_stock_keyboard(update, context):
+s_list = settings.available_stock
+def get_stock(update, context):
     update.message.reply_text(
         f'Выбери компанию',
-        reply_markup = stock_keyboard()
+        reply_markup = keyboard(s_list[0], s_list[1], ['Выбрать компанию по умолчанию'])
     )  
 
-s_list = settings.available_stock
-def stock_keyboard():
-    return ReplyKeyboardMarkup([
-        s_list[0], s_list[1], ['Выбрать валюту по умолчанию']
-    ])
+
 
 def get_stock_price(update, context):
     user_stock = update.message.text
@@ -108,6 +92,22 @@ def get_crypto_exchange_rate(update, context):
 def main():
     curbot = Updater(settings.API_KEY, use_context=True)   
     dp = curbot.dispatcher
+
+    # currency = ConversationHandler(
+    #     entry_points=[
+    #         MessageHandler(Filters.regex('^(Курс валют1)$'), anketa_start)
+    #     ], 
+    #     states={
+    #         'name': [MessageHandler(Filters.text, anketa_name)],
+    #         "rating": [MessageHandler(Filters.regex('^(1|2|3|4|5)$'), anketa_rating)],
+    #         "comment": [
+    #             CommandHandler('skip', anketa_skip),
+    #             MessageHandler(Filters.text, anketa_comment)
+    # ]
+    #     }, 
+    #     fallbacks=[]
+    # )
+    #dp.add_handler(anketa)
     dp.add_handler(CommandHandler('start', greet_user))
     dp.add_handler(MessageHandler(Filters.regex('^(Курсы криптовалют)$'), get_crypto))
     dp.add_handler(MessageHandler(Filters.regex('^(BTC)$'), get_crypto_exchange_rate))
@@ -117,7 +117,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.regex('^(Выбрать криптовалюту по умолчанию)$'), default_crypto_currency))
     dp.add_handler(MessageHandler(Filters.regex('^(Курсы валют)$'), get_currency))
     dp.add_handler(MessageHandler(Filters.regex('^(Выбрать валюту по умолчанию)$'), default_currency))
-    dp.add_handler(MessageHandler(Filters.regex('^(Курсы акций)$'), get_stock_keyboard))
+    dp.add_handler(MessageHandler(Filters.regex('^(Курсы акций)$'), get_stock))
     dp.add_handler(MessageHandler(Filters.regex('^(aapl)$'), get_stock_price))
     dp.add_handler(MessageHandler(Filters.regex('^(yndx)$'), get_stock_price))
     dp.add_handler(MessageHandler(Filters.regex('^(twtr)$'), get_stock_price))
