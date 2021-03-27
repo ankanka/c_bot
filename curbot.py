@@ -4,7 +4,8 @@ import settings
 import requests
 import currency
 from c_utils import c_keyboard
-from c_scenario import с_scenario_start, c_scenario_rate, c_scenario_default
+from c_scenario import с_scenario_start, c_scenario_rate, c_signup, c_cancel
+from stock_scenario import stock_scenario_start, get_stock_price, stock_scenario_default, s_cancel
 
 import logging
 
@@ -26,7 +27,6 @@ def get_crypto(update, context):
         f'Выбери валюту',
         reply_markup = c_keyboard(cc_list[0], cc_list[1], ['Выбрать криптовалюту по умолчанию'])
     )
-   
 
 def default_crypto_currency(update, context):
     return user_crypto_currency
@@ -35,30 +35,11 @@ def default_crypto_currency(update, context):
         reply_markup = c_keyboard(c_list[0], c_list[1], ['Выбрать валюту по умолчанию'])
     )
 
-
-s_list = settings.available_stock
-def get_stock(update, context):
-    update.message.reply_text(
-        f'Выбери компанию',
-        reply_markup = c_keyboard(s_list[0], s_list[1], ['Выбрать компанию по умолчанию'])
-    )  
-
-
-
-def get_stock_price(update, context):
-    user_stock = update.message.text
-    url = 'https://cloud.iexapis.com/stable/tops'
-    params = {
-        'token': settings.API_KEY_IEX,
-        'symbols': user_stock
-    }
-    r = requests.get(url=url, params=params)
-    r_json = r.json()
-    stock_price = r_json[0]['lastSalePrice']
-    update.message.reply_text(f'Текущая цена {user_stock}: {stock_price}$')
-
 def get_crypto_exchange_rate(update, context):
     pass
+
+def unknown (update, context):
+    update.message.reply_text('Не понял тебя')
 
 def main():
     curbot = Updater(settings.API_KEY, use_context=True)   
@@ -66,16 +47,36 @@ def main():
 
     currency = ConversationHandler(
         entry_points=[
-            MessageHandler(Filters.regex('^(Курсы валют)$'), с_scenario_start)
+            MessageHandler(Filters.regex('^(Курсы валют)$'), с_scenario_start),
+            MessageHandler(Filters.regex('^(На главную)$'), c_cancel),
         ], 
         states={
-            'user_currency': [MessageHandler(Filters.text, c_scenario_rate)],
-            'rate': [MessageHandler(Filters.text, c_scenario_default)]
-#            "default_currency": [MessageHandler(Filters.regex('^(RUB|USD|UAH|GBP$'), c_scenario_)]
+            'user_currency': [
+                MessageHandler(Filters.text, c_scenario_rate)],
+            'c_rate': [
+                MessageHandler(Filters.regex('^(Подписаться на курс этой валюты)$'), c_signup),
+                MessageHandler(Filters.regex('^(Назад)$'), с_scenario_start),
+                MessageHandler(Filters.regex('^(На главную)$'), с_scenario_start)
+            ]
+        }, 
+        fallbacks=[
+            MessageHandler(Filters.text | Filters.photo | Filters.video | Filters.document | Filters.location, unknown)
+        ]
+    )
+    stock = ConversationHandler(
+        entry_points=[
+            MessageHandler(Filters.regex('^(Курсы акций)$'), stock_scenario_start),
+            MessageHandler(Filters.regex('^(На главную)$'), s_cancel)
+        ], 
+        states={
+            'user_stock': [MessageHandler(Filters.text, get_stock_price)],
+            'stock_price': [MessageHandler(Filters.text, stock_scenario_default)]
+#            "default_stock": [MessageHandler(Filters.regex('^(RUB|USD|UAH|GBP$'), c_scenario_)]
         }, 
         fallbacks=[]
     )
     dp.add_handler(currency)
+    dp.add_handler(stock)
     dp.add_handler(CommandHandler('start', greet_user))
     dp.add_handler(MessageHandler(Filters.regex('^(Курсы криптовалют)$'), get_crypto))
     dp.add_handler(MessageHandler(Filters.regex('^(BTC)$'), get_crypto_exchange_rate))
@@ -83,14 +84,6 @@ def main():
     dp.add_handler(MessageHandler(Filters.regex('^(BCH)$'), get_crypto_exchange_rate))
     dp.add_handler(MessageHandler(Filters.regex('^(XRP)$'), get_crypto_exchange_rate))
     dp.add_handler(MessageHandler(Filters.regex('^(Выбрать криптовалюту по умолчанию)$'), default_crypto_currency))
-    #dp.add_handler(MessageHandler(Filters.regex('^(Курсы валют)$'), get_currency))
-    #dp.add_handler(MessageHandler(Filters.regex('^(Выбрать валюту по умолчанию)$'), default_currency))
-    dp.add_handler(MessageHandler(Filters.regex('^(Курсы акций)$'), get_stock))
-    dp.add_handler(MessageHandler(Filters.regex('^(aapl)$'), get_stock_price))
-    dp.add_handler(MessageHandler(Filters.regex('^(yndx)$'), get_stock_price))
-    dp.add_handler(MessageHandler(Filters.regex('^(twtr)$'), get_stock_price))
-    dp.add_handler(MessageHandler(Filters.regex('^(goog)$'), get_stock_price))
-    #dp.add_handler(MessageHandler(Filters.text, get_cur_exchange_rate))
 
     logging.info('Бот стартовал')
     curbot.start_polling()

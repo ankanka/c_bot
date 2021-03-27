@@ -1,3 +1,5 @@
-	env/
-	settings.py
-    bot.log
+env/
+settings.py
+bot.log
+test.py
+__pycache__/
