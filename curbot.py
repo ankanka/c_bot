@@ -53,7 +53,7 @@ def main():
     currency = ConversationHandler(
         entry_points=[
             MessageHandler(Filters.regex('^(Курсы валют)$'), с_scenario_start),
-            MessageHandler(Filters.regex('^(На главную)$'), c_cancel),
+            #MessageHandler(Filters.regex('^(На главную)$'), c_cancel),
         ], 
         states={
             'user_currency': [
@@ -61,9 +61,9 @@ def main():
                 MessageHandler(Filters.text, c_scenario_rate), #flatten
             ],
             'c_rate': [
+                MessageHandler(Filters.regex('^(На главную)$'), c_cancel),
                 MessageHandler(Filters.regex('^(Подписаться на курс этой валюты)$'), c_subscribe),
-                MessageHandler(Filters.regex('^(Назад)$'), с_scenario_start),
-                MessageHandler(Filters.regex('^(На главную)$'), c_cancel)
+                MessageHandler(Filters.regex('^(Назад)$'), с_scenario_start)
             ]
         }, 
         fallbacks=[
@@ -72,15 +72,17 @@ def main():
     )
     stock = ConversationHandler(
         entry_points=[
-            MessageHandler(Filters.regex('^(Курсы акций)$'), stock_scenario_start),
-            MessageHandler(Filters.regex('^(На главную)$'), stock_cancel)
+            MessageHandler(Filters.regex('^(Курсы акций)$'), stock_scenario_start)
         ], 
         states={
-            'user_stock': [MessageHandler(Filters.text, get_stock_price)],
+            
+            'user_stock': [
+                MessageHandler(Filters.regex('^(На главную)$'), stock_cancel),
+                MessageHandler(Filters.text, get_stock_price)
+            ],
             'stock_price': [
                 MessageHandler(Filters.regex('^(Подписаться на акции этой компании)$'), stock_subscribe),
-                MessageHandler(Filters.regex('^(Назад)$'), stock_scenario_start),
-                MessageHandler(Filters.regex('^(На главную)$'), stock_scenario_start)
+                MessageHandler(Filters.regex('^(Назад)$'), stock_scenario_start)
             ]
         }, 
         fallbacks=[]
