@@ -1,6 +1,7 @@
 from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
 from telegram.ext import ConversationHandler
-from c_utils import c_keyboard
+from c_utils import c_keyboard, get_price_in_user_currency
+from db import db, get_or_create_user
 import settings
 import requests
 
@@ -8,6 +9,7 @@ import requests
 s_list = settings.available_stock
 
 def stock_scenario_start(update, context):
+    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
     print('ok')
     update.message.reply_text(
         f'Выбери компанию',
@@ -15,7 +17,10 @@ def stock_scenario_start(update, context):
     )  
     return "user_stock"
 
+user_currency = 'RUB'
+
 def get_stock_price(update, context):
+    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
     user_stock = update.message.text
     url = 'https://cloud.iexapis.com/stable/tops'
     params = {
@@ -25,13 +30,15 @@ def get_stock_price(update, context):
     r = requests.get(url=url, params=params)
     r_json = r.json()
     stock_price = r_json[0]['lastSalePrice']
-    update.message.reply_text(f'Текущая цена {user_stock}: {stock_price}$')
- #   return 'stock_price'
+    stock_price_in_rub = get_price_in_user_currency(stock_price)
+    update.message.reply_text(f'Текущая цена {user_stock}: {stock_price} рублей')
+    return 'stock_price'
 
-def stock_scenario_default(update, context):
-    update.message.reply_text('спасибо')
+def stock_subscribe(update, context): 
+    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
     pass
 
-def s_cancel(update, context):
-	update.message.reply_text('Operation canceled', reply_markup=ReplyKeyboardRemove())
-	return ConversationHandler.END
+def stock_cancel(update, context):
+    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
+    update.message.reply_text('Operation canceled', reply_markup = c_keyboard(settings.main[0], settings.main[1]))
+    return ConversationHandler.END
