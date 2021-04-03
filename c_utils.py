@@ -9,10 +9,10 @@ def c_keyboard(list1, list2, button = ['Справка']):
 def get_c_exchange_rate(input_currency):
     r = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')
     c_rate_json = r.json()
-    cur_rate = c_rate_json['Valute'][user_currency]['Value']
+    cur_rate = c_rate_json['Valute'][input_currency]['Value']
     return cur_rate
 
-user_currency = 'USD'
+#user_currency = 'USD'
 
 def get_price_in_user_currency(received_currency, received_price):
     cur_rate = Decimal(get_c_exchange_rate(user_currency))

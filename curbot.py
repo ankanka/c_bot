@@ -1,6 +1,5 @@
 from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters
 from telegram import ReplyKeyboardMarkup, KeyboardButton
-import currency
 import settings
 import requests
 from db import db, get_or_create_user
