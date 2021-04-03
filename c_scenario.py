@@ -4,6 +4,7 @@ from c_utils import c_keyboard, get_c_exchange_rate
 from db import db, get_or_create_user
 import settings
 import requests
+from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 
 c_list = settings.available_currencies
 
@@ -15,7 +16,7 @@ def с_scenario_start(update, context):
     )
     return 'user_currency'
  
-def c_subscribe(update, context): #подписка на валюту
+def c_subscribe(update, context): 
     user = get_or_create_user(db, update.effective_user, update.message.chat.id)
     pass
 
