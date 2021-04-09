@@ -1,19 +1,20 @@
 from decimal import *
-import json
 from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
 from requests import Request, Session, get
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import settings
 
 
-def c_keyboard(list1, list2, button = ['Справка']):
+def c_keyboard(list1, list2, button=['Справка']):
     return ReplyKeyboardMarkup([list1, list2, button])
+
 
 def get_c_exchange_rate(input_currency):
     r = get('https://www.cbr-xml-daily.ru/daily_json.js')
     c_rate_json = r.json()
     cur_rate = c_rate_json['Valute'][input_currency]['Value']
     return cur_rate
+
 
 def get_price_in_user_currency(received_currency, received_price):
     cur_rate = Decimal(get_c_exchange_rate(received_currency))
@@ -24,15 +25,16 @@ def get_price_in_user_currency(received_currency, received_price):
     object_price = object_price.quantize(Decimal("1.0000"))
     return object_price
 
+
 def get_crypto_price(input_crypto):
     url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
     parameters = {
         'symbol': input_crypto,
-        'convert':'USD'
+        'convert': 'USD'
     }
     headers = {
-    'Accepts': 'application/json',
-    'X-CMC_PRO_API_KEY': settings.API_KEY_COIN,
+        'Accepts': 'application/json',
+        'X-CMC_PRO_API_KEY': settings.API_KEY_COIN,
     }
 
     session = Session()

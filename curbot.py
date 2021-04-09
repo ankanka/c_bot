@@ -12,39 +12,42 @@ import logging
 
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
-#PROXY = {'proxy_url': settings.PROXY_URL, 'urllib3_proxy_kwargs': {'username': settings.PROXY_USERNAME, 'password': settings.PROXY_PASSWORD}}
+# PROXY = {'proxy_url': settings.PROXY_URL, 'urllib3_proxy_kwargs': {'username': settings.PROXY_USERNAME, 'password': settings.PROXY_PASSWORD}}
+
 
 def greet_user(update, context):
     user = get_or_create_user(db, update.effective_user, update.message.chat.id)
     print('Вызван /start')
     update.message.reply_text(
         f'Привет, пользователь!',
-        reply_markup = c_keyboard(*settings.main) # c_keyboard(settings.main[0], settings.main[1], settings.main[2]) 
+        reply_markup=c_keyboard(*settings.main)  # c_keyboard(settings.main[0], settings.main[1], settings.main[2])
     )
 
-def unknown (update, context):
+
+def unknown(update, context):
     user = get_or_create_user(db, update.effective_user, update.message.chat.id)
     update.message.reply_text('Не понял тебя')
 
+
 def main():
-    curbot = Updater(settings.API_KEY, use_context=True)   
+    curbot = Updater(settings.API_KEY, use_context=True)
     dp = curbot.dispatcher
 
     currency = ConversationHandler(
         entry_points=[
             MessageHandler(Filters.regex('^(Курсы валют)$'), с_scenario_start)
-        ], 
+        ],
         states={
             'user_currency': [
                 MessageHandler(Filters.regex('^(На главную)$'), c_cancel),
-                MessageHandler(Filters.text, c_scenario_rate), #flatten
+                MessageHandler(Filters.text, c_scenario_rate),  # flatten
             ],
             'c_rate': [
                 MessageHandler(Filters.regex('^(На главную)$'), c_cancel),
                 MessageHandler(Filters.regex('^(Подписаться на курс этой валюты)$'), c_subscribe),
                 MessageHandler(Filters.regex('^(Назад)$'), с_scenario_start)
             ]
-        }, 
+        },
         fallbacks=[
             MessageHandler(Filters.text | Filters.photo | Filters.video | Filters.document | Filters.location, unknown)
         ]
@@ -52,7 +55,7 @@ def main():
     crypto_currency = ConversationHandler(
         entry_points=[
             MessageHandler(Filters.regex('^(Курсы криптовалют)$'), сrypto_scenario_start)
-        ], 
+        ],
         states={
             'user_crypto_currency': [
                 MessageHandler(Filters.regex('^(На главную)$'), crypto_cancel),
@@ -63,17 +66,17 @@ def main():
                 MessageHandler(Filters.regex('^(Подписаться на курс этой валюты)$'), crypto_subscribe),
                 MessageHandler(Filters.regex('^(Назад)$'), сrypto_scenario_start)
             ]
-        }, 
+        },
         fallbacks=[
-            MessageHandler(Filters.text | Filters.photo | Filters.video | Filters.document | Filters.location, unknown)
+            MessageHandler(Filters.text | Filters.photo | Filters.video |
+            Filters.document | Filters.location, unknown)
         ]
     )
     stock = ConversationHandler(
         entry_points=[
             MessageHandler(Filters.regex('^(Курсы акций)$'), stock_scenario_start)
-        ], 
+        ],
         states={
-            
             'user_stock': [
                 MessageHandler(Filters.regex('^(На главную)$'), stock_cancel),
                 MessageHandler(Filters.text, get_stock_price)
@@ -83,7 +86,7 @@ def main():
                 MessageHandler(Filters.regex('^(Назад)$'), stock_scenario_start),
                 MessageHandler(Filters.regex('^(На главную)$'), stock_cancel)
             ]
-        }, 
+        },
         fallbacks=[]
     )
     dp.add_handler(crypto_currency)
@@ -95,8 +98,6 @@ def main():
     curbot.start_polling()
     curbot.idle()
 
+
 if __name__ == '__main__':
     main()
-
-
-    
