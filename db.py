@@ -30,3 +30,19 @@ def save_currency(db, user_id, default_currency):
             {'_id': user['_id']},
             {'$push': {'default_exch_currency': default_currency}}
         )
+
+
+def subscribe_user(db, user_data):
+    if not user_data.get('subscribed'):
+        db.users.update_one(
+            {'_id': user_data['_id']},
+            {'$set': {'subscribed': True}}
+        )
+
+
+def unsubscribe_user(db, user_data):
+    if user_data.get('subscribed'):
+        db.users.update_one(
+            {'_id': user_data['_id']},
+            {'$set': {'subscribed': False}}
+        )

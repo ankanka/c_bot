@@ -1,4 +1,5 @@
 from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters
+from jobs import send_hello, subscribe, unsubscribe
 import settings
 from db import db, get_or_create_user
 from c_utils import c_keyboard
@@ -15,7 +16,7 @@ logging.basicConfig(filename='bot.log', level=logging.INFO)
 
 
 def greet_user(update, context):
-    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
+    get_or_create_user(db, update.effective_user, update.message.chat.id)
     print('Вызван /start')
     update.message.reply_text(
         'Привет, пользователь!',
@@ -30,6 +31,10 @@ def unknown(update, context):
 
 def main():
     curbot = Updater(settings.API_KEY, use_context=True)
+
+    jq = curbot.job_queue
+    jq.run_repeating(send_hello, interval=5)
+
     dp = curbot.dispatcher
 
     currency = ConversationHandler(
@@ -92,6 +97,8 @@ def main():
     dp.add_handler(currency)
     dp.add_handler(stock)
     dp.add_handler(CommandHandler('start', greet_user))
+    dp.add_handler(CommandHandler('subscribe', subscribe))
+    dp.add_handler(CommandHandler('unsubscribe', unsubscribe))
 
     logging.info('Бот стартовал')
     curbot.start_polling()
