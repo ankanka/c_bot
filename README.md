@@ -4,6 +4,8 @@ Currency & stock bot - это телеграм-бот, который помож
 
 Публичная ссылка: https://t.me/curstock_bot
 
+<img src= "https://i.imgur.com/8stjupa.jpg" width = "300" height = "600" > <img src= "https://i.imgur.com/S8AN8az.jpg" width = "300" height = "600" > <img src= "https://imgur.com/tdHB8Bq" width = "300" height = "600" >
+
 ### Установка и настройка
 
 1. Клонируйте репозиторий, создайте виртуальное окружение
@@ -20,7 +22,6 @@ Currency & stock bot - это телеграм-бот, который помож
   available_currencies = [['USD', 'EUR', 'JPY', 'CHF', 'BYN'], ['GBP', 'UAH', 'AMD', 'AZN', 'KZT']]
   available_crypto_currencies = [['BTC', 'LTC', 'BNB', 'ADA', 'DOT'], ['BCH', 'XRP', 'THETA', 'UNI', 'ETH']]
 available_stock = [['aapl', 'twtr', 'yndx', 'goog', 'amzn'], ['snap', 'fb', 'aig', 'tsla', 'msft']]
-  
   ```
 
 ### Запуск
@@ -28,7 +29,3 @@ available_stock = [['aapl', 'twtr', 'yndx', 'goog', 'amzn'], ['snap', 'fb', 'aig
 ```
 python3 curbot.py
 ```
-
-<img src= "https://i.imgur.com/8stjupa.jpg" width = "600" height = "700" >
-<img src= "https://i.imgur.com/S8AN8az.jpg" width = "600" height = "700" >
-<img src= "https://imgur.com/tdHB8Bq" width = "600" height = "700" >
