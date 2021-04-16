@@ -20,7 +20,7 @@ def stock_scenario_start(update, context):
 
 
 def get_stock_price(update, context):
-    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
+    get_or_create_user(db, update.effective_user, update.message.chat.id)
     user_stock = update.message.text
     url = f'https://cloud.iexapis.com/stable/stock/{user_stock}/quote'
     params = {
@@ -43,6 +43,7 @@ def stock_subscribe(update, context):
 
 
 def stock_cancel(update, context):
-    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
-    update.message.reply_text('Возвращаемся в главное меню', reply_markup=c_keyboard(*settings.main))
+    get_or_create_user(db, update.effective_user, update.message.chat.id)
+    update.message.reply_text('Возвращаемся в главное меню',
+                            reply_markup=c_keyboard(*settings.main))
     return ConversationHandler.END

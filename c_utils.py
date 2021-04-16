@@ -1,6 +1,6 @@
-from decimal import *
-from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
-from requests import Request, Session, get
+import decimal
+from telegram import ReplyKeyboardMarkup
+from requests import Session, get
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import settings
 
@@ -17,12 +17,12 @@ def get_c_exchange_rate(input_currency):
 
 
 def get_price_in_user_currency(received_currency, received_price):
-    cur_rate = Decimal(get_c_exchange_rate(received_currency))
-    cur_rate = cur_rate.quantize(Decimal("1.0000"))
-    received_price = Decimal(received_price)
-    received_price = received_price.quantize(Decimal("1.0000"))
+    cur_rate = decimal.Decimal(get_c_exchange_rate(received_currency))
+    cur_rate = cur_rate.quantize(decimal.Decimal("1.0000"))
+    received_price = decimal.Decimal(received_price)
+    received_price = received_price.quantize(decimal.Decimal("1.0000"))
     object_price = received_price * cur_rate
-    object_price = object_price.quantize(Decimal("1.0000"))
+    object_price = object_price.quantize(decimal.Decimal("1.0000"))
     return object_price
 
 
@@ -45,5 +45,5 @@ def get_crypto_price(input_crypto):
         responce = response.json()
         crypto_price = responce['data'][input_crypto]['quote']['USD']['price']
         return crypto_price
-    except (ConnectionError, Timeout, TooManyRedirects) as e:
+    except (ConnectionError, Timeout, TooManyRedirects):
         return 'error'

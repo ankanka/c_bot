@@ -1,7 +1,6 @@
 from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters
-from telegram import ReplyKeyboardMarkup, KeyboardButton
+from jobs import send_hello, subscribe, unsubscribe
 import settings
-from requests import Request, Session
 from db import db, get_or_create_user
 from c_utils import c_keyboard
 from c_scenario import с_scenario_start, c_scenario_rate, c_subscribe, c_cancel
@@ -12,25 +11,30 @@ import logging
 
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 
-# PROXY = {'proxy_url': settings.PROXY_URL, 'urllib3_proxy_kwargs': {'username': settings.PROXY_USERNAME, 'password': settings.PROXY_PASSWORD}}
+#  PROXY = {'proxy_url': settings.PROXY_URL, 'urllib3_proxy_kwargs': {
+# 'username': settings.PROXY_USERNAME, 'password': settings.PROXY_PASSWORD}}
 
 
 def greet_user(update, context):
-    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
+    get_or_create_user(db, update.effective_user, update.message.chat.id)
     print('Вызван /start')
     update.message.reply_text(
-        f'Привет, пользователь!',
+        'Привет, пользователь!',
         reply_markup=c_keyboard(*settings.main)  # c_keyboard(settings.main[0], settings.main[1], settings.main[2])
     )
 
 
 def unknown(update, context):
-    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
+    get_or_create_user(db, update.effective_user, update.message.chat.id)
     update.message.reply_text('Не понял тебя')
 
 
 def main():
     curbot = Updater(settings.API_KEY, use_context=True)
+
+    jq = curbot.job_queue
+    jq.run_repeating(send_hello, interval=5)
+
     dp = curbot.dispatcher
 
     currency = ConversationHandler(
@@ -93,6 +97,8 @@ def main():
     dp.add_handler(currency)
     dp.add_handler(stock)
     dp.add_handler(CommandHandler('start', greet_user))
+    dp.add_handler(CommandHandler('subscribe', subscribe))
+    dp.add_handler(CommandHandler('unsubscribe', unsubscribe))
 
     logging.info('Бот стартовал')
     curbot.start_polling()
