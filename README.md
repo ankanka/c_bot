@@ -4,7 +4,7 @@ Currency & stock bot - это телеграм-бот, который помож
 
 Публичная ссылка: https://t.me/curstock_bot
 
-<img src= "https://i.imgur.com/8stjupa.jpg" width = "300" height = "600" > <img src= "https://i.imgur.com/S8AN8az.jpg" width = "300" height = "600" > <img src= "https://imgur.com/tdHB8Bq" width = "300" height = "600" >
+<img src= "https://i.imgur.com/8stjupa.jpg" width = "300" height = "600" > <img src= "https://i.imgur.com/S8AN8az.jpg" width = "300" height = "600" > <img src= "https://i.imgur.com/tdHB8Bq.jpg" width = "300" height = "600" >
 
 ### Установка и настройка
 
